@@ -1,8 +1,9 @@
 <template>
     <div class="container">
+        <span class="panel-descriptor">Settings</span>
         <div class="buttons">
-            <button :disabled="disabled" @click="retrieve()">Retrieve Settings</button>
-            <button :disabled="disabled" @click="update()">Update Settings</button>
+            <button class="default-button" :disabled="!canRetrieve" @click="retrieve()">Retrieve Settings</button>
+            <button class="default-button" :disabled="!canUpdate" @click="update()">Update Settings</button>
         </div>
         <div class="settings">
             <div>
@@ -22,61 +23,50 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useConnectionStore } from "@/stores/connection";
+import { useSelectionStore } from "@/stores/selection";
+import { updateSettings, retrieveSettings } from "../api"
+
 
 const volumeInput = ref();
 const discoveryIntervalInput = ref();
 
 const connectionStore = useConnectionStore();
+const selectionStore = useSelectionStore();
 
+const canRetrieve = computed(() => selectionStore.selection.length == 1);
 
-const disabled = computed(() => connectionStore.url === "");
+const canUpdate = computed(() => selectionStore.selection.length > 0);
 
-let controller = null;// = new AbortController();
-
-const retrieve = () => {
-
-    if(controller != null)
-        controller.abort();
-
-    if(disabled.value)
+const retrieve = async () => {
+    if(!canRetrieve.value)
         return;
     
-    controller = new AbortController();
-    fetch("http://" + connectionStore.url + "/settings", {signal: controller.signal})
-    .then(r => r.json())
-    .then(json => {
-        
-
-        console.debug(json);
+    const address = selectionStore.selection[0];
+    try
+    {
+        const json = await retrieveSettings(address);
 
         volumeInput.value.value = json.volume * 100;
         discoveryIntervalInput.value.value = json.discovery_interval;
-    });
+    } catch(e)
+    {
+        alert("Failed to retrieve settings from " + address);
+    }
 }
 
 const update = () => {
-    if(controller != null)
-        controller.abort();
-
-    if(disabled.value)
+    if(!canUpdate.value)
         return;
 
-    controller = new AbortController();
+    const settings = {
+        volume: volumeInput.value.value / 100,
+        discovery_interval: Number(discoveryIntervalInput.value.value)
+    };
 
-    const options = {
-        signal: controller.signal,
-        method: "PUT",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            volume: volumeInput.value.value / 100,
-            discovery_interval: Number(discoveryIntervalInput.value.value)
-        })
+    for(let i = 0; i < selectionStore.selection.length; i ++)
+    {
+        updateSettings(selectionStore.selection[i], settings);
     }
-
-    console.debug(options);
-
-    fetch("http://" + connectionStore.url + "/settings",  options);
 }
 
 
@@ -85,7 +75,12 @@ const update = () => {
 <style scoped>
 .container
 {
-    margin-top: 20px;
+    padding-top:10px;
+    margin-left: 20px;
+    display: flex;
+    gap: 10px;
+
+  flex-direction: column;
 }
 
 .buttons

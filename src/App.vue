@@ -1,18 +1,7 @@
 <template>
-    <!--<header>
-        <AddressPanel ref="panel" />
-    </header>
-    <main>
-        <Container>
-            <div title="Hello">Hello world!</div>
-            <div title="World">World hello!</div>
-            <div title="Hi">Hi universe!</div>
-            <div title="Universe">Universe hi!</div>
-        </Container>
-    </main>
-    <footer>
-
-    </footer>-->
+    <header>
+        <TopBar />
+    </header> 
     <main>
         <AddressPanel />
         <Settings />
@@ -21,12 +10,27 @@
 
 
 <script setup lang="ts">
+import TopBar from "./components/TopBar.vue"
 import AddressPanel from './components/AddressPanel.vue'
 import Settings from './components/Settings.vue'
-import Container from './components/Container.vue'
 
 </script>
 
-<style scoped>
+<style>
 
+main
+{
+    display: flex;
+    position:relative;
+    height: 100%;
+    width:100%;
+}
+
+#app
+{
+    position:absolute;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
 </style>

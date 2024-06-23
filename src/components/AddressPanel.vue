@@ -1,17 +1,36 @@
 <template>
-  <div class="address-panel">
+  <div class="container">
+    <span class="panel-descriptor">Connections</span>
+    <link href='https://unpkg.com/css.gg@2.0.0/icons/css/trash.css' rel='stylesheet'>
     
-    
-    <span>Current node: </span>
+    <button class="default-button">Get nodes from bridge</button>
+    <button @click="directConnect()" class="default-button">Manually add node</button>
+    <!--
+    <span>Manual</span>
+    <div>
+      <input type="text"></input>
+      <button @click="directConnect()" class="default-button">Add</button>
+    </div>-->
+    <br />
+    <span>List of available nodes:</span>
+    <div class="node-list">
+      <div v-for="node in nodes"  class="node-entry">
+        <div>
+          <input type="checkbox" @change="updateSelection(node, $event.target.checked);" />
+          <span>{{ node }}</span>
+        </div>
+        <button class="delete"><i class="gg-trash"></i></button>
+      </div>
+    </div>
+
+    <!--<span>Current node: </span>
     <select v-model="currentSelection">
       <option v-for="node in nodes">
         {{ node }}
       </option>
-    </select>
+    </select>-->
     
-    <button @click="directConnect()">Add Connection</button>
-    <button>Get from Bridge</button>
-
+    
   </div>
     
 </template>
@@ -23,29 +42,56 @@
   import { useConnectionStore } from "../stores/connection";
   import { defineModel } from "vue"
 
-  const currentSelection = defineModel<string>("");
+  import { useSelectionStore } from "../stores/selection"
 
-  const currentConnection = useConnectionStore();
+  import { updateSettings, retrieveSettings, ping} from "../api"
 
-  watch(currentSelection, () => {
-    const node = currentSelection.value || "";
 
-    currentConnection.url = node;
-  });
-
-  //All entries must be verified before being entered
   const nodes = ref<string[]>([]);
 
+  const selectionStore = useSelectionStore();
+
+
+  watch(nodes, () => { 
+    for(let i = nodes.value.length - 1; i >= 0; i --)
+    {
+      const index = selectionStore.selection.indexOf(nodes.value[i]);
+      if (index > -1) { // only splice array when item is found
+        selectionStore.selection.splice(index, 1); // 2nd parameter means remove one item only
+      }
+    }
+  });
+
+
+  const updateSelection = (address : string, selected : boolean) => {
+    if(selected)
+    {
+      if(!selectionStore.selection.includes(address))
+      {
+        selectionStore.selection.push(address);
+      }
+    } else
+    {
+      const index = selectionStore.selection.indexOf(address);
+      if (index > -1) { // only splice array when item is found
+        selectionStore.selection.splice(index, 1); // 2nd parameter means remove one item only
+      }
+    }
+  }
+  //All entries must be verified before being entered
+  
+
   const directConnect = () => {
-    const address = (prompt("Enter address [ip:port]") || "").trim();
+    const address = (prompt("Enter the address of the node:\n(ip:port)") || "").trim();
     
     if(nodes.value.includes(address))
     {
+
       alert(address + " is already in the list of nodes");
       return;
     }
 
-    validate(address).then(b => {
+    ping(address).then(b => {
       if(b)
         nodes.value.push(address);
       else
@@ -53,46 +99,82 @@
     });
   }
 
-  const validate = async (address : string) : boolean  => {
-
-    const controller = new AbortController()
-
-    const timeoutId = setTimeout(() => controller.abort(), 2000)
-
-    let result = null;
-    try
-    {
-      result = await fetch("http://" + address, { signal: controller.signal });
-    } catch(e)
-    {
-      return false;
-    }
-
-    console.log(result);
-
-    return result.status == 200;
-  };
 </script>
 
 
 <style scoped>
 
-.address-panel
+.container
 {
+  --ggs: 0.8;
+  --border-offset: 10px;
   display: flex;
-  align-items: center; 
-  justify-content: left;
+  /*align-items: center;*/
+
+  flex-direction: column;
+  /*justify-content: left;*/
   gap: 10px; /* This will add 100px space between each child element */
-  margin-bottom: 10px;
-  padding-bottom: 3px;
-  padding-top: 3px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: white;
+
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: white;
+
+  min-width:300px;
+
+  padding-top: 10px;
+
+  position:relative;
+  height: 100%;
 }
 
-select
+button
 {
-  min-width:200px;
+  width: max-content;
+}
+
+.node-list
+{
+  border-radius: 8px;
+  min-height: 10px;
+  background-color: var(--background-color-tint);
+  overflow:hidden;
+  width: calc(100% - var(--border-offset));
+}
+
+
+.node-entry
+{
+  padding-left: 3px;
+  padding-right: 0px;
+  display: flex;
+  overflow: hidden;
+  justify-content: space-between;
+}
+
+.node-entry + .node-entry
+{
+  border-top-style: solid;
+  border-top-color: white;
+  border-top-width: 1px;
+}
+
+.node-entry div span
+{
+  margin-left:5px;
+}
+
+.delete
+{
+  border: none;
+  color: white;
+  background-color: #ff3333;
+  transition-duration: 100ms;
+}
+
+.delete:hover
+{
+  transition-duration: 100ms;
+  background-color: #a82d2d;
+
 }
 </style>
