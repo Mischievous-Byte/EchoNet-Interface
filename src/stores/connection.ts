@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useConnectionStore = defineStore('connection', () => {
-    const url = ref("");
+    let url : string = "";
     //const isValid = computed(() => )
     return { url };
 });

@@ -1,5 +1,5 @@
 <template>
-    <header>
+    <!--<header>
         <AddressPanel ref="panel" />
     </header>
     <main>
@@ -12,17 +12,20 @@
     </main>
     <footer>
 
-    </footer>
+    </footer>-->
+    <main>
+        <AddressPanel />
+        <Settings />
+    </main>
 </template>
 
 
 <script setup lang="ts">
 import AddressPanel from './components/AddressPanel.vue'
+import Settings from './components/Settings.vue'
 import Container from './components/Container.vue'
 
 </script>
-
-
 
 <style scoped>
 

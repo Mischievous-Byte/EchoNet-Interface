@@ -1,37 +1,70 @@
 @import './base.css';
 
-/*
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+:root
+{
+  color: var(--text-color);
+  font-family: var(--font);
+  font-size: var(--font-size);
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+body
+{
+  background-color: var(--background-color);
+  margin-top: 0px;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+button
+{
+  --animation-duration: 100ms;
+  --shift: 4px;
+  --base-padding: 10px;
+
+  position: relative;
+  overflow: hidden;
+
+  color: var(--text-color);
+  font-family: var(--font);
+  background-color: rgba(255,255,255,0.2);
+  margin-left:2px;
+  margin-right:2px;
+  
+
+
+  border:none;
+  border-radius: 4px;
+  font-size: var(--font-size);
+
+
+  padding-right: var(--base-padding);
+  padding-left: var(--base-padding);
+
+  transition-duration: var(--animation-duration);
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+button:disabled
+{
+  text-decoration: line-through
 }
-*/
+button:enabled:hover
+{
+  transition-duration: var(--animation-duration);
+  
+  padding-right: calc(var(--base-padding) - var(--shift));
+  padding-left: calc(var(--base-padding) + var(--shift));
+}
+
+button:enabled::before
+{
+  content: ">";
+
+  position:absolute;
+  left:-10px;
+  transition-duration: var(--animation-duration);
+}
+
+button:enabled:hover::before
+{
+  left: var(--shift);
+
+  transition-duration: var(--animation-duration);
+}
